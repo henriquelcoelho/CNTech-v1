@@ -7,17 +7,22 @@ import ProtectedRoute from './src/components/ProtectedRoute';
 function App() {
   const { user, isAuthenticated, logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState(() => {
+    // Recuperar página salva ou usar 'home' como padrão
+    return localStorage.getItem('cntech_current_page') || 'home';
+  });
 
-  const handleLogin = async (credentials) => {
-    // Implementar lógica de login aqui
-    console.log('Login attempt:', credentials);
-    setShowAuthModal(false);
-  };
+
 
   const handleLogout = () => {
     logout();
     setCurrentPage('home');
+    localStorage.setItem('cntech_current_page', 'home');
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    localStorage.setItem('cntech_current_page', page);
   };
 
   const renderHeader = () => (
@@ -30,31 +35,31 @@ function App() {
         <nav className="nav">
           <button 
             className={`nav-link ${currentPage === 'home' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('home')}
+            onClick={() => handlePageChange('home')}
           >
             Início
           </button>
           <button 
             className={`nav-link ${currentPage === 'courses' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('courses')}
+            onClick={() => handlePageChange('courses')}
           >
             Cursos
           </button>
           <button 
             className={`nav-link ${currentPage === 'devotional' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('devotional')}
+            onClick={() => handlePageChange('devotional')}
           >
             Devocional
           </button>
           <button 
             className={`nav-link ${currentPage === 'blog' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('blog')}
+            onClick={() => handlePageChange('blog')}
           >
             Blog
           </button>
           <button 
             className={`nav-link ${currentPage === 'events' ? 'active' : ''}`}
-            onClick={() => setCurrentPage('events')}
+            onClick={() => handlePageChange('events')}
           >
             Eventos
           </button>
@@ -67,7 +72,7 @@ function App() {
               {user?.role === 'admin' && (
                 <button 
                   className="btn-secondary"
-                  onClick={() => setCurrentPage('admin')}
+                  onClick={() => handlePageChange('admin')}
                 >
                   Admin
                 </button>
@@ -97,8 +102,23 @@ function App() {
           <h1>Bem-vindo à Comunidade das Nações</h1>
           <p>Conectando pessoas através da tecnologia e fé</p>
           <div className="hero-buttons">
-            <button className="btn-primary">Explorar Cursos</button>
-            <button className="btn-secondary">Saiba Mais</button>
+                          <button 
+                className="btn-primary"
+                onClick={() => handlePageChange('courses')}
+              >
+                Explorar Cursos
+              </button>
+            <button 
+              className="btn-secondary"
+              onClick={() => {
+                // Scroll para a seção de cursos
+                document.querySelector('.courses-section')?.scrollIntoView({ 
+                  behavior: 'smooth' 
+                });
+              }}
+            >
+              Saiba Mais
+            </button>
           </div>
         </div>
       </section>
@@ -107,23 +127,56 @@ function App() {
       <section className="courses-section">
         <div className="container">
           <h2>Trilhas CNTech</h2>
-          <div className="courses-grid">
-            <div className="course-card">
-              <h3>Frontend Development</h3>
-              <p>Aprenda React, Vue.js e desenvolvimento web moderno</p>
-              <button className="btn-primary">Começar</button>
+                      <div className="courses-grid">
+              <div className="course-card">
+                <h3>Frontend Development</h3>
+                <p>Aprenda React, Vue.js e desenvolvimento web moderno</p>
+                <button 
+                  className="btn-primary"
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      setShowAuthModal(true);
+                    } else {
+                      console.log('Inscrição no curso: Frontend Development');
+                    }
+                  }}
+                >
+                  Começar
+                </button>
+              </div>
+              <div className="course-card">
+                <h3>Backend Development</h3>
+                <p>Node.js, Python, APIs e desenvolvimento de servidores</p>
+                <button 
+                  className="btn-primary"
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      setShowAuthModal(true);
+                    } else {
+                      console.log('Inscrição no curso: Backend Development');
+                    }
+                  }}
+                >
+                  Começar
+                </button>
+              </div>
+              <div className="course-card">
+                <h3>Mobile Development</h3>
+                <p>React Native, Flutter e desenvolvimento mobile</p>
+                <button 
+                  className="btn-primary"
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      setShowAuthModal(true);
+                    } else {
+                      console.log('Inscrição no curso: Mobile Development');
+                    }
+                  }}
+                >
+                  Começar
+                </button>
+              </div>
             </div>
-            <div className="course-card">
-              <h3>Backend Development</h3>
-              <p>Node.js, Python, APIs e desenvolvimento de servidores</p>
-              <button className="btn-primary">Começar</button>
-            </div>
-            <div className="course-card">
-              <h3>Mobile Development</h3>
-              <p>React Native, Flutter e desenvolvimento mobile</p>
-              <button className="btn-primary">Começar</button>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -162,18 +215,40 @@ function App() {
       <section className="events-section">
         <div className="container">
           <h2>Próximos Eventos</h2>
-          <div className="events-grid">
-            <div className="event-card">
-              <h3>Workshop de React</h3>
-              <p>20 Jan 2024 • 14:00</p>
-              <button className="btn-primary">Participar</button>
+                      <div className="events-grid">
+              <div className="event-card">
+                <h3>Workshop de React</h3>
+                <p>20 Jan 2024 • 14:00</p>
+                <button 
+                  className="btn-primary"
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      setShowAuthModal(true);
+                    } else {
+                      console.log('Inscrição no evento: Workshop de React');
+                    }
+                  }}
+                >
+                  Participar
+                </button>
+              </div>
+              <div className="event-card">
+                <h3>Encontro de Oração</h3>
+                <p>22 Jan 2024 • 19:00</p>
+                <button 
+                  className="btn-primary"
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      setShowAuthModal(true);
+                    } else {
+                      console.log('Inscrição no evento: Encontro de Oração');
+                    }
+                  }}
+                >
+                  Participar
+                </button>
+              </div>
             </div>
-            <div className="event-card">
-              <h3>Encontro de Oração</h3>
-              <p>22 Jan 2024 • 19:00</p>
-              <button className="btn-primary">Participar</button>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -232,7 +307,6 @@ function App() {
       <AuthModal 
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onLogin={handleLogin}
       />
     </div>
   );

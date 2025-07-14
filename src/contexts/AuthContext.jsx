@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useToast } from './ToastContext';
 
 const AuthContext = createContext();
 
@@ -11,6 +12,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
+  const { success, error: showError } = useToast();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -49,9 +51,11 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       localStorage.setItem('cntech_user', JSON.stringify(mockUser));
       
+      success(`Bem-vindo, ${mockUser.name}!`);
       return { success: true, user: mockUser };
     } catch (error) {
       console.error('Erro no login:', error);
+      showError('Erro ao fazer login. Tente novamente.');
       return { success: false, error: 'Erro ao fazer login' };
     }
   };
@@ -75,9 +79,11 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       localStorage.setItem('cntech_user', JSON.stringify(newUser));
       
+      success(`Conta criada com sucesso! Bem-vindo, ${newUser.name}!`);
       return { success: true, user: newUser };
     } catch (error) {
       console.error('Erro no registro:', error);
+      showError('Erro ao criar conta. Tente novamente.');
       return { success: false, error: 'Erro ao criar conta' };
     }
   };
@@ -86,6 +92,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('cntech_user');
+    success('Logout realizado com sucesso!');
   };
 
   const updateUser = (updates) => {

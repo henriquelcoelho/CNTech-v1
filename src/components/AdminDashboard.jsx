@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useToast } from '../contexts/ToastContext';
 
 const AdminDashboard = () => {
+  const { success, error, warning } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -70,8 +72,22 @@ const AdminDashboard = () => {
                     <td><span className={`role-badge ${user.role.toLowerCase()}`}>{user.role}</span></td>
                     <td>{user.date}</td>
                     <td>
-                      <button className="action-btn edit">Editar</button>
-                      <button className="action-btn delete">Excluir</button>
+                      <button 
+                        className="action-btn edit"
+                        onClick={() => {
+                          success(`Editando usuário: ${user.name}`);
+                        }}
+                      >
+                        Editar
+                      </button>
+                      <button 
+                        className="action-btn delete"
+                        onClick={() => {
+                          warning(`Tem certeza que deseja excluir ${user.name}?`);
+                        }}
+                      >
+                        Excluir
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -101,8 +117,22 @@ const AdminDashboard = () => {
                     <td>{course.students}</td>
                     <td><span className={`status-badge ${course.status.toLowerCase().replace(' ', '-')}`}>{course.status}</span></td>
                     <td>
-                      <button className="action-btn edit">Editar</button>
-                      <button className="action-btn view">Ver</button>
+                      <button 
+                        className="action-btn edit"
+                        onClick={() => {
+                          success(`Editando curso: ${course.title}`);
+                        }}
+                      >
+                        Editar
+                      </button>
+                      <button 
+                        className="action-btn view"
+                        onClick={() => {
+                          success(`Visualizando curso: ${course.title}`);
+                        }}
+                      >
+                        Ver
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -118,7 +148,14 @@ const AdminDashboard = () => {
     <div className="admin-users">
       <div className="section-header">
         <h2>Gerenciamento de Usuários</h2>
-        <button className="btn-primary">Adicionar Usuário</button>
+        <button 
+          className="btn-primary"
+          onClick={() => {
+            success('Funcionalidade de adicionar usuário em desenvolvimento!');
+          }}
+        >
+          Adicionar Usuário
+        </button>
       </div>
       
       <div className="filters">
@@ -129,7 +166,14 @@ const AdminDashboard = () => {
           <option value="instructor">Instrutor</option>
           <option value="student">Estudante</option>
         </select>
-        <button className="btn-secondary">Filtrar</button>
+        <button 
+          className="btn-secondary"
+          onClick={() => {
+            success('Filtros aplicados com sucesso!');
+          }}
+        >
+          Filtrar
+        </button>
       </div>
 
       <div className="table-container">
@@ -170,7 +214,14 @@ const AdminDashboard = () => {
     <div className="admin-courses">
       <div className="section-header">
         <h2>Gerenciamento de Cursos</h2>
-        <button className="btn-primary">Criar Curso</button>
+        <button 
+          className="btn-primary"
+          onClick={() => {
+            success('Funcionalidade de criar curso em desenvolvimento!');
+          }}
+        >
+          Criar Curso
+        </button>
       </div>
       
       <div className="filters">
@@ -181,7 +232,14 @@ const AdminDashboard = () => {
           <option value="draft">Rascunho</option>
           <option value="archived">Arquivado</option>
         </select>
-        <button className="btn-secondary">Filtrar</button>
+        <button 
+          className="btn-secondary"
+          onClick={() => {
+            success('Filtros aplicados com sucesso!');
+          }}
+        >
+          Filtrar
+        </button>
       </div>
 
       <div className="table-container">
@@ -297,7 +355,18 @@ const AdminDashboard = () => {
           <div className="header-right">
             <div className="admin-profile">
               <span>Admin</span>
-              <button className="logout-btn">Sair</button>
+              <button 
+                className="logout-btn"
+                onClick={() => {
+                  success('Logout realizado com sucesso!');
+                  // Redirecionar para home após 1 segundo
+                  setTimeout(() => {
+                    window.location.href = '/';
+                  }, 1000);
+                }}
+              >
+                Sair
+              </button>
             </div>
           </div>
         </header>
