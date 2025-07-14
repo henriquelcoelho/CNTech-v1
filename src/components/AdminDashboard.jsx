@@ -1,431 +1,314 @@
-import { useState, useEffect } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
-import { Button } from '@/components/ui/button.jsx'
-import { Badge } from '@/components/ui/badge.jsx'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.jsx'
-import { Alert, AlertDescription } from '@/components/ui/alert.jsx'
-import { 
-  Users, 
-  FileText, 
-  Calendar, 
-  Settings, 
-  BarChart3, 
-  Shield, 
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  UserCheck,
-  UserX,
-  Crown,
-  User
-} from 'lucide-react'
-import ProtectedRoute from '../auth/ProtectedRoute'
+import React, { useState } from 'react';
 
 const AdminDashboard = () => {
-  const { getAllUsers, promoteToAdmin, demoteToUser, user } = useAuth()
-  const [users, setUsers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    adminUsers: 0,
-    regularUsers: 0,
-    newUsersThisMonth: 0
-  })
+  const [activeTab, setActiveTab] = useState('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  useEffect(() => {
-    loadUsers()
-  }, [])
+  const stats = {
+    users: 1247,
+    courses: 23,
+    activeStudents: 892,
+    revenue: 'R$ 45.230'
+  };
 
-  const loadUsers = async () => {
-    setLoading(true)
-    try {
-      const { data, error } = await getAllUsers()
-      if (error) {
-        setError(error.message || 'Erro ao carregar usuários')
-      } else {
-        setUsers(data || [])
-        calculateStats(data || [])
-      }
-    } catch (err) {
-      setError('Erro inesperado ao carregar dados')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const recentUsers = [
+    { id: 1, name: 'João Silva', email: 'joao@email.com', role: 'Estudante', date: '2024-01-15' },
+    { id: 2, name: 'Maria Santos', email: 'maria@email.com', role: 'Instrutor', date: '2024-01-14' },
+    { id: 3, name: 'Pedro Costa', email: 'pedro@email.com', role: 'Estudante', date: '2024-01-13' },
+  ];
 
-  const calculateStats = (usersData) => {
-    const now = new Date()
-    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    
-    const stats = {
-      totalUsers: usersData.length,
-      adminUsers: usersData.filter(u => u.role === 'admin').length,
-      regularUsers: usersData.filter(u => u.role === 'user').length,
-      newUsersThisMonth: usersData.filter(u => new Date(u.created_at) >= thisMonth).length
-    }
-    
-    setStats(stats)
-  }
+  const recentCourses = [
+    { id: 1, title: 'React Avançado', instructor: 'Prof. Silva', students: 45, status: 'Ativo' },
+    { id: 2, title: 'Node.js Backend', instructor: 'Prof. Santos', students: 32, status: 'Ativo' },
+    { id: 3, title: 'TypeScript', instructor: 'Prof. Costa', students: 28, status: 'Em desenvolvimento' },
+  ];
 
-  const handleRoleChange = async (userId, newRole) => {
-    try {
-      const { error } = newRole === 'admin' 
-        ? await promoteToAdmin(userId)
-        : await demoteToUser(userId)
-      
-      if (error) {
-        setError(error.message || 'Erro ao alterar permissões')
-      } else {
-        await loadUsers() // Recarregar lista
-      }
-    } catch (err) {
-      setError('Erro inesperado ao alterar permissões')
-    }
-  }
-
-  const StatCard = ({ title, value, description, icon: Icon, color = "blue" }) => (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className={`h-4 w-4 text-${color}-600`} />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-gray-600">{description}</p>
-      </CardContent>
-    </Card>
-  )
-
-  const UserRow = ({ userData }) => (
-    <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-      <div className="flex items-center space-x-4">
-        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-          {userData.role === 'admin' ? (
-            <Crown className="h-5 w-5 text-yellow-600" />
-          ) : (
-            <User className="h-5 w-5 text-blue-600" />
-          )}
+  const renderOverview = () => (
+    <div className="admin-overview">
+      <div className="stats-grid">
+        <div className="stat-card">
+          <h3>Total de Usuários</h3>
+          <p className="stat-number">{stats.users}</p>
+          <span className="stat-change positive">+12% este mês</span>
         </div>
-        <div>
-          <h3 className="font-medium text-gray-900">
-            {userData.full_name || userData.email}
-          </h3>
-          <p className="text-sm text-gray-600">{userData.email}</p>
-          <p className="text-xs text-gray-500">
-            Criado em: {new Date(userData.created_at).toLocaleDateString('pt-BR')}
-          </p>
+        <div className="stat-card">
+          <h3>Cursos Disponíveis</h3>
+          <p className="stat-number">{stats.courses}</p>
+          <span className="stat-change positive">+3 novos</span>
+        </div>
+        <div className="stat-card">
+          <h3>Estudantes Ativos</h3>
+          <p className="stat-number">{stats.activeStudents}</p>
+          <span className="stat-change positive">+8% esta semana</span>
+        </div>
+        <div className="stat-card">
+          <h3>Receita Mensal</h3>
+          <p className="stat-number">{stats.revenue}</p>
+          <span className="stat-change positive">+15% este mês</span>
         </div>
       </div>
-      
-      <div className="flex items-center space-x-3">
-        <Badge variant={userData.role === 'admin' ? 'default' : 'secondary'}>
-          {userData.role === 'admin' ? 'Administrador' : 'Usuário'}
-        </Badge>
-        
-        {userData.id !== user?.id && (
-          <div className="flex space-x-2">
-            {userData.role === 'user' ? (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleRoleChange(userData.id, 'admin')}
-                className="text-green-600 hover:text-green-700"
-              >
-                <UserCheck className="h-4 w-4 mr-1" />
-                Promover
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => handleRoleChange(userData.id, 'user')}
-                className="text-orange-600 hover:text-orange-700"
-              >
-                <UserX className="h-4 w-4 mr-1" />
-                Rebaixar
-              </Button>
-            )}
+
+      <div className="recent-activity">
+        <div className="recent-section">
+          <h3>Usuários Recentes</h3>
+          <div className="table-container">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>Função</th>
+                  <th>Data</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentUsers.map(user => (
+                  <tr key={user.id}>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td><span className={`role-badge ${user.role.toLowerCase()}`}>{user.role}</span></td>
+                    <td>{user.date}</td>
+                    <td>
+                      <button className="action-btn edit">Editar</button>
+                      <button className="action-btn delete">Excluir</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
+        </div>
+
+        <div className="recent-section">
+          <h3>Cursos Recentes</h3>
+          <div className="table-container">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Título</th>
+                  <th>Instrutor</th>
+                  <th>Estudantes</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentCourses.map(course => (
+                  <tr key={course.id}>
+                    <td>{course.title}</td>
+                    <td>{course.instructor}</td>
+                    <td>{course.students}</td>
+                    <td><span className={`status-badge ${course.status.toLowerCase().replace(' ', '-')}`}>{course.status}</span></td>
+                    <td>
+                      <button className="action-btn edit">Editar</button>
+                      <button className="action-btn view">Ver</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
-  )
+  );
+
+  const renderUsers = () => (
+    <div className="admin-users">
+      <div className="section-header">
+        <h2>Gerenciamento de Usuários</h2>
+        <button className="btn-primary">Adicionar Usuário</button>
+      </div>
+      
+      <div className="filters">
+        <input type="text" placeholder="Buscar usuários..." className="search-input" />
+        <select className="filter-select">
+          <option value="">Todas as funções</option>
+          <option value="admin">Administrador</option>
+          <option value="instructor">Instrutor</option>
+          <option value="student">Estudante</option>
+        </select>
+        <button className="btn-secondary">Filtrar</button>
+      </div>
+
+      <div className="table-container">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>Função</th>
+              <th>Status</th>
+              <th>Data de Criação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentUsers.map(user => (
+              <tr key={user.id}>
+                <td>{user.id}</td>
+                <td>{user.name}</td>
+                <td>{user.email}</td>
+                <td><span className={`role-badge ${user.role.toLowerCase()}`}>{user.role}</span></td>
+                <td><span className="status-badge active">Ativo</span></td>
+                <td>{user.date}</td>
+                <td>
+                  <button className="action-btn edit">Editar</button>
+                  <button className="action-btn delete">Excluir</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const renderCourses = () => (
+    <div className="admin-courses">
+      <div className="section-header">
+        <h2>Gerenciamento de Cursos</h2>
+        <button className="btn-primary">Criar Curso</button>
+      </div>
+      
+      <div className="filters">
+        <input type="text" placeholder="Buscar cursos..." className="search-input" />
+        <select className="filter-select">
+          <option value="">Todos os status</option>
+          <option value="active">Ativo</option>
+          <option value="draft">Rascunho</option>
+          <option value="archived">Arquivado</option>
+        </select>
+        <button className="btn-secondary">Filtrar</button>
+      </div>
+
+      <div className="table-container">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Título</th>
+              <th>Instrutor</th>
+              <th>Estudantes</th>
+              <th>Status</th>
+              <th>Data de Criação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentCourses.map(course => (
+              <tr key={course.id}>
+                <td>{course.id}</td>
+                <td>{course.title}</td>
+                <td>{course.instructor}</td>
+                <td>{course.students}</td>
+                <td><span className={`status-badge ${course.status.toLowerCase().replace(' ', '-')}`}>{course.status}</span></td>
+                <td>2024-01-10</td>
+                <td>
+                  <button className="action-btn edit">Editar</button>
+                  <button className="action-btn view">Ver</button>
+                  <button className="action-btn delete">Excluir</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return renderOverview();
+      case 'users':
+        return renderUsers();
+      case 'courses':
+        return renderCourses();
+      case 'analytics':
+        return <div className="admin-analytics"><h2>Analytics</h2><p>Em desenvolvimento...</p></div>;
+      case 'settings':
+        return <div className="admin-settings"><h2>Configurações</h2><p>Em desenvolvimento...</p></div>;
+      default:
+        return renderOverview();
+    }
+  };
 
   return (
-    <ProtectedRoute requireAdmin={true}>
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Painel Administrativo
-          </h1>
-          <p className="text-gray-600">
-            Gerencie usuários, conteúdo e configurações da Comunidade das Nações
-          </p>
+    <div className="admin-dashboard">
+      {/* Sidebar */}
+      <div className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <h2>CNTech Admin</h2>
+          <button 
+            className="sidebar-toggle"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+          >
+            ☰
+          </button>
         </div>
-
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Total de Usuários"
-            value={stats.totalUsers}
-            description="Membros registrados"
-            icon={Users}
-            color="blue"
-          />
-          <StatCard
-            title="Administradores"
-            value={stats.adminUsers}
-            description="Usuários com acesso admin"
-            icon={Shield}
-            color="yellow"
-          />
-          <StatCard
-            title="Usuários Comuns"
-            value={stats.regularUsers}
-            description="Membros da comunidade"
-            icon={User}
-            color="green"
-          />
-          <StatCard
-            title="Novos este Mês"
-            value={stats.newUsersThisMonth}
-            description="Registros recentes"
-            icon={BarChart3}
-            color="purple"
-          />
-        </div>
-
-        {/* Tabs de Administração */}
-        <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="users" className="flex items-center space-x-2">
-              <Users className="h-4 w-4" />
-              <span>Usuários</span>
-            </TabsTrigger>
-            <TabsTrigger value="content" className="flex items-center space-x-2">
-              <FileText className="h-4 w-4" />
-              <span>Conteúdo</span>
-            </TabsTrigger>
-            <TabsTrigger value="events" className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4" />
-              <span>Eventos</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center space-x-2">
-              <Settings className="h-4 w-4" />
-              <span>Configurações</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Aba de Usuários */}
-          <TabsContent value="users" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Gerenciar Usuários</CardTitle>
-                    <CardDescription>
-                      Visualize e gerencie permissões dos usuários
-                    </CardDescription>
-                  </div>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Convidar Usuário
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="text-center py-8">
-                    <p className="text-gray-600">Carregando usuários...</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {users.map((userData) => (
-                      <UserRow key={userData.id} userData={userData} />
-                    ))}
-                    {users.length === 0 && (
-                      <div className="text-center py-8">
-                        <p className="text-gray-600">Nenhum usuário encontrado</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Aba de Conteúdo */}
-          <TabsContent value="content" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <FileText className="h-5 w-5 mr-2 text-blue-600" />
-                    Blog Posts
-                  </CardTitle>
-                  <CardDescription>
-                    Gerencie artigos do blog dos líderes
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <Button className="w-full" variant="outline">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Novo Artigo
-                    </Button>
-                    <Button className="w-full" variant="outline">
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver Todos
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-2 text-green-600" />
-                    Devocionais
-                  </CardTitle>
-                  <CardDescription>
-                    Gerencie devocionais diários
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <Button className="w-full" variant="outline">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Novo Devocional
-                    </Button>
-                    <Button className="w-full" variant="outline">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar Atual
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Settings className="h-5 w-5 mr-2 text-purple-600" />
-                    CNTech
-                  </CardTitle>
-                  <CardDescription>
-                    Gerencie trilhas e conteúdo técnico
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <Button className="w-full" variant="outline">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nova Trilha
-                    </Button>
-                    <Button className="w-full" variant="outline">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar Trilhas
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Aba de Eventos */}
-          <TabsContent value="events" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Gerenciar Eventos</CardTitle>
-                    <CardDescription>
-                      Crie e gerencie eventos da igreja
-                    </CardDescription>
-                  </div>
-                  <Button className="bg-green-600 hover:bg-green-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Novo Evento
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-gray-600 mb-4">
-                    Funcionalidade de eventos em desenvolvimento
-                  </p>
-                  <Button variant="outline">
-                    Ver Calendário Atual
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Aba de Configurações */}
-          <TabsContent value="settings" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Configurações Gerais</CardTitle>
-                  <CardDescription>
-                    Configurações básicas do site
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button className="w-full" variant="outline">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Informações da Igreja
-                  </Button>
-                  <Button className="w-full" variant="outline">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar Contatos
-                  </Button>
-                  <Button className="w-full" variant="outline">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Termos e Políticas
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Backup e Segurança</CardTitle>
-                  <CardDescription>
-                    Ferramentas de manutenção
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button className="w-full" variant="outline">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Backup de Dados
-                  </Button>
-                  <Button className="w-full" variant="outline">
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Relatórios
-                  </Button>
-                  <Button className="w-full" variant="outline">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Logs do Sistema
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+        
+        <nav className="sidebar-nav">
+          <button 
+            className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
+            onClick={() => setActiveTab('overview')}
+          >
+            📊 Visão Geral
+          </button>
+          <button 
+            className={`nav-item ${activeTab === 'users' ? 'active' : ''}`}
+            onClick={() => setActiveTab('users')}
+          >
+            👥 Usuários
+          </button>
+          <button 
+            className={`nav-item ${activeTab === 'courses' ? 'active' : ''}`}
+            onClick={() => setActiveTab('courses')}
+          >
+            📚 Cursos
+          </button>
+          <button 
+            className={`nav-item ${activeTab === 'analytics' ? 'active' : ''}`}
+            onClick={() => setActiveTab('analytics')}
+          >
+            📈 Analytics
+          </button>
+          <button 
+            className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('settings')}
+          >
+            ⚙️ Configurações
+          </button>
+        </nav>
       </div>
-    </ProtectedRoute>
-  )
-}
 
-export default AdminDashboard
+      {/* Main Content */}
+      <div className="admin-main">
+        <header className="admin-header">
+          <div className="header-left">
+            <h1>{activeTab === 'overview' ? 'Dashboard' : 
+                 activeTab === 'users' ? 'Usuários' :
+                 activeTab === 'courses' ? 'Cursos' :
+                 activeTab === 'analytics' ? 'Analytics' :
+                 activeTab === 'settings' ? 'Configurações' : 'Dashboard'}</h1>
+          </div>
+          <div className="header-right">
+            <div className="admin-profile">
+              <span>Admin</span>
+              <button className="logout-btn">Sair</button>
+            </div>
+          </div>
+        </header>
+
+        <main className="admin-content">
+          {renderContent()}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default AdminDashboard;
 

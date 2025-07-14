@@ -1,223 +1,118 @@
-import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase, auth, profiles, USER_ROLES } from '../lib/supabase'
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const AuthContext = createContext({})
+const AuthContext = createContext();
 
 export const useAuth = () => {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider')
+    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
   }
-  return context
-}
+  return context;
+};
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Simular verificação de autenticação ao carregar
   useEffect(() => {
-    // Verificar sessão inicial
-    const getInitialSession = async () => {
-      const { session } = await auth.getSession()
-      if (session?.user) {
-        setUser(session.user)
-        await loadUserProfile(session.user.id)
+    const checkAuth = () => {
+      const savedUser = localStorage.getItem('cntech_user');
+      if (savedUser) {
+        const userData = JSON.parse(savedUser);
+        setUser(userData);
+        setIsAuthenticated(true);
       }
-      setLoading(false)
-    }
+      setLoading(false);
+    };
 
-    getInitialSession()
+    checkAuth();
+  }, []);
 
-    // Listener para mudanças de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setUser(session.user)
-          await loadUserProfile(session.user.id)
-        } else {
-          setUser(null)
-          setProfile(null)
-          setIsAdmin(false)
-        }
-        setLoading(false)
-      }
-    )
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const loadUserProfile = async (userId) => {
+  const login = async (credentials) => {
     try {
-      const { data: profileData, error } = await profiles.getProfile(userId)
+      // Simular chamada de API
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (error && error.code === 'PGRST116') {
-        // Perfil não existe, criar um novo
-        const { data: newProfile, error: createError } = await profiles.createProfile(userId, {
-          email: user?.email,
-          full_name: user?.user_metadata?.full_name || '',
-          role: USER_ROLES.USER
-        })
-        
-        if (!createError) {
-          setProfile(newProfile)
-          setIsAdmin(newProfile.role === USER_ROLES.ADMIN)
-        }
-      } else if (!error) {
-        setProfile(profileData)
-        setIsAdmin(profileData.role === USER_ROLES.ADMIN)
-      }
-    } catch (error) {
-      console.error('Erro ao carregar perfil:', error)
-    }
-  }
+      // Mock de resposta da API
+      const mockUser = {
+        id: 1,
+        name: credentials.email.split('@')[0],
+        email: credentials.email,
+        role: credentials.email.includes('admin') ? 'admin' : 'user',
+        avatar: `https://ui-avatars.com/api/?name=${credentials.email.split('@')[0]}&background=random`,
+        createdAt: new Date().toISOString()
+      };
 
-  const signIn = async (email, password) => {
-    setLoading(true)
-    try {
-      const { data, error } = await auth.signIn(email, password)
-      if (error) throw error
-      return { data, error: null }
-    } catch (error) {
-      return { data: null, error }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const signUp = async (email, password, userData = {}) => {
-    setLoading(true)
-    try {
-      const { data, error } = await auth.signUp(email, password, userData)
-      if (error) throw error
-      return { data, error: null }
-    } catch (error) {
-      return { data: null, error }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const signOut = async () => {
-    setLoading(true)
-    try {
-      const { error } = await auth.signOut()
-      if (error) throw error
-      setUser(null)
-      setProfile(null)
-      setIsAdmin(false)
-      return { error: null }
-    } catch (error) {
-      return { error }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const updateProfile = async (updates) => {
-    if (!user) return { error: 'Usuário não autenticado' }
-    
-    try {
-      const { data, error } = await profiles.updateProfile(user.id, updates)
-      if (error) throw error
+      setUser(mockUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('cntech_user', JSON.stringify(mockUser));
       
-      setProfile(data)
-      setIsAdmin(data.role === USER_ROLES.ADMIN)
-      return { data, error: null }
+      return { success: true, user: mockUser };
     } catch (error) {
-      return { data: null, error }
+      console.error('Erro no login:', error);
+      return { success: false, error: 'Erro ao fazer login' };
     }
-  }
+  };
 
-  const resetPassword = async (email) => {
+  const register = async (userData) => {
     try {
-      const { data, error } = await auth.resetPassword(email)
-      return { data, error }
-    } catch (error) {
-      return { data: null, error }
-    }
-  }
+      // Simular chamada de API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock de resposta da API
+      const newUser = {
+        id: Date.now(),
+        name: userData.name,
+        email: userData.email,
+        role: 'user',
+        avatar: `https://ui-avatars.com/api/?name=${userData.name}&background=random`,
+        createdAt: new Date().toISOString()
+      };
 
-  const updatePassword = async (password) => {
-    try {
-      const { data, error } = await auth.updatePassword(password)
-      return { data, error }
+      setUser(newUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('cntech_user', JSON.stringify(newUser));
+      
+      return { success: true, user: newUser };
     } catch (error) {
-      return { data: null, error }
+      console.error('Erro no registro:', error);
+      return { success: false, error: 'Erro ao criar conta' };
     }
-  }
+  };
 
-  // Funções administrativas
-  const promoteToAdmin = async (userId) => {
-    if (!isAdmin) return { error: 'Acesso negado' }
-    
-    try {
-      const { data, error } = await profiles.promoteToAdmin(userId)
-      return { data, error }
-    } catch (error) {
-      return { data: null, error }
-    }
-  }
+  const logout = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+    localStorage.removeItem('cntech_user');
+  };
 
-  const demoteToUser = async (userId) => {
-    if (!isAdmin) return { error: 'Acesso negado' }
-    
-    try {
-      const { data, error } = await profiles.demoteToUser(userId)
-      return { data, error }
-    } catch (error) {
-      return { data: null, error }
-    }
-  }
+  const updateUser = (updates) => {
+    const updatedUser = { ...user, ...updates };
+    setUser(updatedUser);
+    localStorage.setItem('cntech_user', JSON.stringify(updatedUser));
+  };
 
-  const getAllUsers = async () => {
-    if (!isAdmin) return { error: 'Acesso negado' }
-    
-    try {
-      const { data, error } = await profiles.getAllUsers()
-      return { data, error }
-    } catch (error) {
-      return { data: null, error }
-    }
-  }
+  const isAdmin = () => {
+    return user?.role === 'admin';
+  };
 
   const value = {
-    // Estado
     user,
-    profile,
     loading,
-    isAdmin,
-    isAuthenticated: !!user,
-    
-    // Funções de autenticação
-    signIn,
-    signUp,
-    signOut,
-    updateProfile,
-    resetPassword,
-    updatePassword,
-    
-    // Funções administrativas
-    promoteToAdmin,
-    demoteToUser,
-    getAllUsers,
-    
-    // Utilitários
-    hasRole: (role) => profile?.role === role,
-    canAccess: (requiredRole) => {
-      if (!profile) return false
-      if (requiredRole === USER_ROLES.ADMIN) return isAdmin
-      return true // Usuários comuns podem acessar conteúdo de usuário
-    }
-  }
+    isAuthenticated,
+    login,
+    register,
+    logout,
+    updateUser,
+    isAdmin
+  };
 
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
-  )
-}
-
-export default AuthContext
+  );
+};
 

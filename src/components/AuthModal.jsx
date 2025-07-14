@@ -1,78 +1,125 @@
-import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog.jsx'
-import { Button } from '@/components/ui/button.jsx'
-import { X } from 'lucide-react'
-import LoginForm from './LoginForm'
-import RegisterForm from './RegisterForm'
-import ForgotPasswordForm from './ForgotPasswordForm'
+import React, { useState } from 'react';
 
-const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
-  const [mode, setMode] = useState(initialMode)
+const AuthModal = ({ isOpen, onClose, onLogin }) => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    name: '',
+    confirmPassword: ''
+  });
 
-  const handleModeChange = (newMode) => {
-    setMode(newMode)
-  }
-
-  const handleClose = () => {
-    setMode('login') // Reset to login when closing
-    onClose()
-  }
-
-  const renderForm = () => {
-    switch (mode) {
-      case 'register':
-        return (
-          <RegisterForm 
-            onToggleMode={handleModeChange}
-            onClose={handleClose}
-          />
-        )
-      case 'forgot':
-        return (
-          <ForgotPasswordForm 
-            onToggleMode={handleModeChange}
-            onClose={handleClose}
-          />
-        )
-      default:
-        return (
-          <LoginForm 
-            onToggleMode={handleModeChange}
-            onClose={handleClose}
-          />
-        )
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (isLogin) {
+      // Lógica de login
+      onLogin(formData);
+    } else {
+      // Lógica de registro
+      if (formData.password !== formData.confirmPassword) {
+        alert('Senhas não coincidem!');
+        return;
+      }
+      // Implementar registro
     }
-  }
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-        <DialogHeader className="sr-only">
-          <DialogTitle>
-            {mode === 'login' && 'Fazer Login'}
-            {mode === 'register' && 'Criar Conta'}
-            {mode === 'forgot' && 'Recuperar Senha'}
-          </DialogTitle>
-        </DialogHeader>
+    <div className="auth-modal-overlay">
+      <div className="auth-modal">
+        <button className="auth-modal-close" onClick={onClose}>×</button>
         
-        <div className="relative">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute right-2 top-2 z-10"
-            onClick={handleClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          
-          <div className="p-6">
-            {renderForm()}
-          </div>
+        <div className="auth-modal-header">
+          <h2>{isLogin ? 'Entrar' : 'Criar Conta'}</h2>
+          <p>{isLogin ? 'Acesse sua conta CNTech' : 'Junte-se à comunidade CNTech'}</p>
         </div>
-      </DialogContent>
-    </Dialog>
-  )
-}
 
-export default AuthModal
+        <form onSubmit={handleSubmit} className="auth-form">
+          {!isLogin && (
+            <div className="form-group">
+              <label htmlFor="name">Nome Completo</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                placeholder="Digite seu nome completo"
+              />
+            </div>
+          )}
+
+          <div className="form-group">
+            <label htmlFor="email">E-mail</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              placeholder="Digite seu e-mail"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Senha</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              placeholder="Digite sua senha"
+            />
+          </div>
+
+          {!isLogin && (
+            <div className="form-group">
+              <label htmlFor="confirmPassword">Confirmar Senha</label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                placeholder="Confirme sua senha"
+              />
+            </div>
+          )}
+
+          <button type="submit" className="auth-submit-btn">
+            {isLogin ? 'Entrar' : 'Criar Conta'}
+          </button>
+        </form>
+
+        <div className="auth-modal-footer">
+          <p>
+            {isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
+            <button
+              className="auth-toggle-btn"
+              onClick={() => setIsLogin(!isLogin)}
+            >
+              {isLogin ? 'Criar conta' : 'Fazer login'}
+            </button>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AuthModal;
 
